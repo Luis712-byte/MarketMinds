@@ -3,18 +3,35 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.sqlite3
+*.db
 venv/
 .env
-*.sqlite3
+.envrc
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
 
 # IDEs y editores
 .vscode/
 .idea/
 *.swp
+*.swo
+*.swn
 
 # Archivos de logs y caché
 logs/
 *.log
+*.cache
+*.pid
+*.seed
 
 # Dependencias
 node_modules/
+package-lock.json
+yarn.lock
+
+# Otros
+.DS_Store
+Thumbs.db
+.npm/
