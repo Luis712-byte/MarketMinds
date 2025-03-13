@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketMinds</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #fff;
+            color: white;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        main {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        canvas {
+            max-width: 60%;
+            height: auto;
+        }
+
+        .info {
+            max-width: 30%;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .info h2 {
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Predicción del Precio de Acciones de APPLE</h1>
+    </header>
+    <main>
+        <canvas id="stockChart"></canvas>
+        <div class="info">
+            <h2>Información del Gráfico</h2>
+            <p><strong>Fecha:</strong> <span id="dateInfo"></span></p>
+            <p><strong>Cierre:</strong> <span id="closeInfo"></span></p>
+            <p><strong>Apertura:</strong> <span id="openInfo"></span></p>
+            <p><strong>Máximo:</strong> <span id="highInfo"></span></p>
+            <p><strong>Mínimo:</strong> <span id="lowInfo"></span></p>
+            <p><strong>Volumen:</strong> <span id="volumeInfo"></span></p>
+            <button onclick="updateChart()">Actualizar Predicción</button>
+        </div>
+    </main>
+
+    <script>
+        let labels = {{ labels|tojson|safe }};
+        let data = {{ data|tojson|safe }}.map(d => d[0]);  // Flatten the data array
+        let stockInfo = {{ stock_info|tojson|safe }};
+        console.log("Labels:", labels);
+        console.log("Data:", data);
+        console.log("Stock Info:", stockInfo);
+
+        // Crear gráfico con Chart.js
+        let ctx = document.getElementById('stockChart').getContext('2d');
+        let stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Precio Predicho',
+                    data: data,
+                    borderColor: 'green',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: "Tiempo" } },
+                    y: { title: { display: true, text: "Precio" } }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        });
+
+        // Mostrar información de los datos
+        document.getElementById('dateInfo').innerText = new Date().toLocaleString();
+        document.getElementById('closeInfo').innerText = stockInfo.previousClose || 'N/A';
+        document.getElementById('openInfo').innerText = stockInfo.open || 'N/A';
+        document.getElementById('highInfo').innerText = stockInfo.dayHigh || 'N/A';
+        document.getElementById('lowInfo').innerText = stockInfo.dayLow || 'N/A';
+        document.getElementById('volumeInfo').innerText = stockInfo.volume || 'N/A';
+
+        // Función para actualizar la gráfica
+        function updateChart() {
+            fetch('/get_new_prediction')
+                .then(response => response.json())
+                .then(newData => {
+                    if (newData.error) {
+                        console.error('Error al actualizar:', newData.error);
+                        return;
+                    }
+                    console.log("New Data:", newData);
+                    stockChart.data.labels = newData.labels;
+                    stockChart.data.datasets[0].data = newData.data.map(d => d[0]);  // Flatten the data array
+                    stockChart.update();
+                    document.getElementById('dateInfo').innerText = new Date().toLocaleString();
+                    document.getElementById('closeInfo').innerText = newData.stock_info.previousClose || 'N/A';
+                    document.getElementById('openInfo').innerText = newData.stock_info.open || 'N/A';
+                    document.getElementById('highInfo').innerText = newData.stock_info.dayHigh || 'N/A';
+                    document.getElementById('lowInfo').innerText = newData.stock_info.dayLow || 'N/A';
+                    document.getElementById('volumeInfo').innerText = newData.stock_info.volume || 'N/A';
+                })
+                .catch(error => console.error('Error al actualizar:', error));
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+*.sqlite3
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+
+# Archivos de logs y caché
+logs/
+*.log
+
+# Dependencias
+node_modules/
